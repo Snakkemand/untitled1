@@ -2,25 +2,28 @@ import cv2
 import numpy as np
 import argparse
 import urllib
+import urllib.request
 
+url = 'http://192.168.43.1:8080/shot.jpg'
 
-# Capture the input frame from webcam
-def get_frame(cap, scaling_factor):
+def get_frame(scaling_factor):
+    img_resp = urllib.request.urlopen(url)
+    img_arr = np.array(bytearray(img_resp.read()), dtype=np.uint8)
     # Capture the frame from video capture object
-    ret, frame = cap.read()
+    frame = cv2.imdecode(img_arr, -1)
 
     # Resize the input frame
     frame = cv2.resize(frame, None, fx=scaling_factor, fy=scaling_factor, interpolation=cv2.INTER_AREA)
 
     return frame
 
+
 if __name__ == '__main__':
-    cap = cv2.VideoCapture(0)
     scaling_factor = 0.5
 
     # Iterate until the user presses ESC key
     while True:
-        frame = get_frame(cap, scaling_factor)
+        frame = get_frame(scaling_factor)
 
         # Convert the HSV colorspace
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -35,7 +38,6 @@ if __name__ == '__main__':
         res = cv2.bitwise_and(frame, frame, mask=mask)
         res = cv2.medianBlur(res, 5)
 
-
         # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         # detect circles in the image
@@ -45,7 +47,7 @@ if __name__ == '__main__':
         if circles is not None:
             circles = np.round(circles[0, :]).astype("int")
 
-        # loop over the (x, y) coordinates and radius of the circles
+            # loop over the (x, y) coordinates and radius of the circles
             for (x, y, r) in circles:
                 # draw the circle in the output image, then draw a rectangle
                 # corresponding to the center of the circle

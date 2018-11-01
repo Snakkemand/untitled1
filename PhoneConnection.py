@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
-import requests
+import time
 import urllib.request
 
-url = 'http://192.168.43.113:8888/shot.jpg'
+url = 'http://192.168.43.1:8080/shot.jpg'
 
 while True:
 
@@ -13,7 +13,7 @@ while True:
 
         cv2.imshow('IPWebcam', img)
 
-        # time.sleep(0.1)
+        #time.sleep(0.1)
         if cv2.waitKey(1) == 27:
             break
 
