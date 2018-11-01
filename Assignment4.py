@@ -1,8 +1,51 @@
 import cv2
+import imutils
 import numpy as np
 import argparse
 import urllib
 import urllib.request
+
+# import the necessary packages
+import cv2
+
+
+class ShapeDetector:
+    def __init__(self):
+        pass
+
+    def detect(self, c):
+        # initialize the shape name and approximate the contour
+        shape = "unidentified"
+        peri = cv2.arcLength(c, True)
+        approx = cv2.approxPolyDP(c, 0.04 * peri, True)
+
+        # if the shape is a triangle, it will have 3 vertices
+        if len(approx) == 3:
+            shape = "triangle"
+
+        # if the shape has 4 vertices, it is either a square or
+        # a rectangle
+        elif len(approx) == 4:
+            # compute the bounding box of the contour and use the
+            # bounding box to compute the aspect ratio
+            (x, y, w, h) = cv2.boundingRect(approx)
+            ar = w / float(h)
+
+            # a square will have an aspect ratio that is approximately
+            # equal to one, otherwise, the shape is a rectangle
+            shape = "square"
+
+        # if the shape is a pentagon, it will have 5 vertices
+        elif len(approx) == 5:
+            shape = ""
+
+        # otherwise, we assume the shape is a circle
+        else:
+            shape = "circle"
+
+        # return the name of the shape
+        return shape
+
 
 url = 'http://192.168.43.1:8080/shot.jpg'
 
@@ -60,6 +103,40 @@ if __name__ == '__main__':
         res3 = cv2.medianBlur(res3, 5)
 
         # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        image = cv2.imread("shapes_and_colors.jpg")
+        resized = imutils.resize(res2, width=300)
+        ratio = res2.shape[0] / float(resized.shape[0])
+
+        # convert the resized image to grayscale, blur it slightly,
+        # and threshold it
+        gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+        thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
+
+        # find contours in the thresholded image and initialize the
+        # shape detector
+        cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnts = cnts[0] if imutils.is_cv2() else cnts[1]
+        sd = ShapeDetector()
+
+        for c in cnts:
+            # compute the center of the contour, then detect the name of the
+            # shape using only the contour
+            M = cv2.moments(c)
+            if M["m00"] != 0:
+                cX = int((M["m10"] / M["m00"]) * ratio)
+                cY = int((M["m01"] / M["m00"]) * ratio)
+            else:
+                cX, cY = 0, 0
+            shape = sd.detect(c)
+
+            # multiply the contour (x, y)-coordinates by the resize ratio,
+            # then draw the contours and the name of the shape on the image
+            c = c.astype("float")
+            c *= ratio
+            c = c.astype("int")
+            cv2.drawContours(res2, [c], -1, (0, 255, 0), 2)
+            cv2.putText(res2, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
         # detect circles in the image red
         circles = cv2.HoughCircles(maskred, cv2.HOUGH_GRADIENT, 4, 100)
@@ -78,9 +155,7 @@ if __name__ == '__main__':
         # show the output image and colors
         cv2.imshow('Original image', frame)
         cv2.imshow('Color Detector1', res2)
-        cv2.imshow('circle Detection', res1) # only showing circles and red
-
-
+        # cv2.imshow('circle Detection', res1)  # only showing circles and red
 
         # Check if the user pressed ESC key
         c = cv2.waitKey(5)
