@@ -13,10 +13,6 @@ def get_frame(cap, scaling_factor):
 
     return frame
 
-
-image = cv2.imread("shape_3.jpg")
-output = image.copy()
-
 if __name__ == '__main__':
     cap = cv2.VideoCapture(0)
     scaling_factor = 0.5
