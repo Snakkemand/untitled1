@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import argparse
+import urllib
 
 
 # Capture the input frame from webcam
