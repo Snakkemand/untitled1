@@ -23,6 +23,7 @@ class ShapeDetector:
         if len(approx) == 3:
             shape = "triangle"
 
+
         # if the shape has 4 vertices, it is either a square or
         # a rectangle
         elif len(approx) == 4:
@@ -136,7 +137,25 @@ if __name__ == '__main__':
             c *= ratio
             c = c.astype("int")
             cv2.drawContours(res2, [c], -1, (0, 255, 0), 2)
-            cv2.putText(res2, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            #cv2.putText(res2, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            cv2.circle(res2, (cX, cY), 7, (255, 255, 255), -1)
+            cv2.putText(res2, "center", (cX - 20, cY - 20),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            
+            print(shape, end='')
+            #print(cX - 20, cY - 20)
+
+            x_diff = 600 - (cX - 20)
+            y_diff = 300 - (cY - 20)
+
+            x_ratio = round(600/x_diff, 3)
+            y_ratio = round(300/y_diff, 3)
+
+            print(" + x_ratio: ", end='')
+            print(x_ratio, end='')
+            print(" + y_ratio: ", end='')
+            print(y_ratio)
+
 
         # detect circles in the image red
         circles = cv2.HoughCircles(maskred, cv2.HOUGH_GRADIENT, 4, 100)
