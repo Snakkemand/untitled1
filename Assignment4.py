@@ -1,13 +1,20 @@
-import cv2
 import imutils
 import numpy as np
 import argparse
 import urllib
 import urllib.request
+import sys
 
-# import the necessary packages
 import cv2
+import socket
 
+host = ''
+port = 50000
+backlog = 5
+size = 1024
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.bind((host, port))
+sock.listen(backlog)
 
 class ShapeDetector:
     def __init__(self):
@@ -137,25 +144,36 @@ if __name__ == '__main__':
             c *= ratio
             c = c.astype("int")
             cv2.drawContours(res2, [c], -1, (0, 255, 0), 2)
-            #cv2.putText(res2, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            # cv2.putText(res2, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
             cv2.circle(res2, (cX, cY), 7, (255, 255, 255), -1)
             cv2.putText(res2, "center", (cX - 20, cY - 20),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-            
+
             print(shape, end='')
-            #print(cX - 20, cY - 20)
+            # print(cX - 20, cY - 20)
 
-            x_diff = 600 - (cX - 20)
-            y_diff = 300 - (cY - 20)
+            height = np.size(frame, 0)
+            width = np.size(frame, 1)
 
-            x_ratio = round(600/x_diff, 3)
-            y_ratio = round(300/y_diff, 3)
+            x_diff = width - (cX - 20)
+            y_diff = height - (cY - 20)
 
-            print(" + x_ratio: ", end='')
-            print(x_ratio, end='')
-            print(" + y_ratio: ", end='')
-            print(y_ratio)
+            x_ratio = round(width / x_diff, 3)
+            y_ratio = round(height / y_diff, 3)
 
+            #print(" + x_ratio: ", end='')
+            #print(x_ratio, end='')
+            #print(" + y_ratio: ", end='')
+            #print(y_ratio)
+
+            print('Ready for connection')
+            try:
+                client, address = sock.accept()
+                print('Client connected : ', address)
+                client.send(bytes(str(shape), 'utf-8'))
+            except:
+                print('Something went wrong')
+            sock.close()
 
         # detect circles in the image red
         circles = cv2.HoughCircles(maskred, cv2.HOUGH_GRADIENT, 4, 100)
